@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="login.css">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <title>Inicio de sesión</title>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                .then(reg => console.log('Service Worker registrado', reg))
+                .catch(err => console.log('Error al registrar el Service Worker', err));
+            });
+        }
+    </script>
+</head>
+<body>
+    <video autoplay muted loop id="video-background">
+        <source src="inicio.mp4" type="video/mp4">
+    </video>
+
+    <div class="contenido">
+        <div class="forms-container">
+            <div class="forms" id="forms">
+                <form id="sign-in-form">
+                    <h2>INICIO DE SESIÓN</h2>
+                    <div class="input-container">
+                        <label for="emailInput">Email<i class='bx bx-envelope-open'></i></label>
+                        <input type="email" id="emailInput" name="user" placeholder="Ingrese su email" required>
+                    </div>
+                    <div class="input-container">
+                        <div class="forget">
+                            <label for="passwordInput">Contraseña<i class="bx bxs-lock-alt"></i></label>
+                        </div>
+                        <input type="password" id="passwordInput" name="contra" class="cajaentradatexto" placeholder="Ingrese su contraseña" required>
+                    </div>
+                    <button type="submit">Iniciar Sesión</button>
+                </form>
+            </div>
+        </div>
+        <div class="banner">
+            <section>
+                <h1>¡Hola! Es un placer darte la bienvenida</h1>
+                <p>"Siempre hay algo especial solo para ti."</p>
+                <img src="fondo.png" width="270px" height="220px">
+            </section>
+        </div>
+    </div>
+
+    <script src="login.js"></script>
+</body>
+</html>

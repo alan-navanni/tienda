@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú Principal y Gestión de Inventario - Tienda</title>
+    <link rel="stylesheet" href="menu.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="flex flex-col items-center justify-start min-h-screen">
+
+    <video autoplay muted loop class="video-background">
+        <source src="fondo.mp4" type="video/mp4">
+        Tu navegador no soporta videos HTML5.
+    </video>
+
+    <div class="video-overlay"></div>
+
+    <header class="w-full bg-pink-600 text-white shadow-lg p-4 border-b border-white-700 fixed top-0 left-0 z-50">
+        <div class="container mx-auto flex items-center justify-center">
+            <div class="text-white text-3xl font-extrabold tracking-tight">
+                Tienda <span class="text-white-200 text-base">"Siempre hay algo especial solo para ti."</span>
+            </div>
+        </div>
+    </header>
+
+    <main id="main-content" class="flex-grow flex items-start justify-center p-4 w-full sm:max-w-md md:max-w-lg lg:max-w-2xl">
+        <div id="main-menu-section" class="bg-white p-8 rounded-xl shadow-lg w-full text-center">
+            <h1 class="text-3xl font-bold text-pink-600 mb-8">Bienvenido a la Gestión de tu Tienda</h1>
+            <p class="text-gray-700 text-lg mb-6">Usa los enlaces para acceder a las diferentes secciones.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <a href="#" id="menuInventoryBtn" class="button-link small-button">
+                    Gestión de Inventario
+                </a>
+                <a href="#" id="menuPOSBtn" class="button-link small-button">
+                    Pago de productos</a>
+                <a href="index.html" class="button-link small-button">
+                    Cerrar Sesión
+                </a>
+            </div>
+        </div>
+
+        <div id="inventory-management-section" class="bg-white p-8 rounded-xl shadow-lg w-full" style="display: none;">
+            <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Gestión de Inventario</h1>
+
+            <div class="flex border-b border-gray-200 mb-4">
+                <button id="tabInventario" class="tab-button active">Ver Inventario</button>
+                <button id="tabEditar" class="tab-button">Editar Producto</button>
+                <button id="tabAgregar" class="tab-button">Agregar Producto</button>
+            </div>
+
+            <div id="contentInventario" class="tab-content">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">Lista de Productos</h2>
+
+                <div class="mb-4">
+                    <label for="productSearch" class="block text-gray-700 text-sm font-bold mb-2">Buscar por Nombre o ID:</label>
+                    <input type="text" id="productSearch" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Escribe el nombre o ID del producto">
+                </div>
+
+                <div class="overflow-x-auto mt-4">
+                    <table id="inventory-table" class="min-w-full bg-white border border-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="py-2 px-4 border-b text-left">ID</th>
+                                <th class="py-2 px-4 border-b text-left">Nombre</th>
+                                <th class="py-2 px-4 border-b text-left">Cantidad</th>
+                                <th class="py-2 px-4 border-b text-left">Precio</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryTableBody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex justify-between items-center mt-4">
+                    <button id="prevPageBtn" class="button-link rounded-l">Anterior</button>
+                    <span id="pageInfo" class="text-gray-700">Página 1 de 1</span>
+                    <button id="nextPageBtn" class="button-link rounded-r">Siguiente</button>
+                </div>
+            </div>
+
+            <div id="contentEditar" class="tab-content hidden-tab">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">Editar Producto</h2>
+                <div class="mb-4">
+                    <p class="text-gray-600 mb-2">Escanea el código de barras o ingresa el ID para buscar y editar un producto:</p>
+                    <button id="startEditScanner" class="button-link">
+                        Escanear para Editar
+                    </button>
+                    <div id="scanner-container-edit" class="mt-4 border border-gray-300 rounded overflow-hidden" style="display: none;">
+                        <div id="html5qr-code-full-region-edit"></div>
+                        <div id="scanner-message-edit" class="p-4 text-center text-gray-500">
+                            Haz clic en "Escanear para Editar" para iniciar la cámara.
+                        </div>
+                    </div>
+                    <p id="barcode-result-edit" class="mt-2 text-lg font-semibold text-gray-800"></p>
+                    <label for="editProductIdManual" class="block text-gray-700 text-sm font-bold mb-2 mt-4">O ingresa el ID manualmente:</label>
+                    <input type="text" id="editProductIdManual" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="ID del producto">
+                    <button id="searchProductByIdBtn" class="button-link mt-2">Buscar Producto</button>
+                </div>
+
+                <hr class="my-6">
+
+                <h3 class="text-xl font-semibold text-gray-700 mb-4">Datos del Producto a Editar</h3>
+                <form class="space-y-4" id="editProductForm">
+                    <div>
+                        <label for="editProductId" class="block text-gray-700 text-sm font-bold mb-2">ID del Producto:</label>
+                        <input type="text" id="editProductId" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="ID del producto" readonly>
+                    </div>
+                    <div>
+                        <label for="editProductName" class="block text-gray-700 text-sm font-bold mb-2">Nombre:</label>
+                        <input type="text" id="editProductName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Nuevo nombre del producto">
+                    </div>
+                    <div>
+                        <label for="editProductQuantity" class="block text-gray-700 text-sm font-bold mb-2">Cantidad:</label>
+                        <input type="number" id="editProductQuantity" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Nueva cantidad">
+                    </div>
+                    <div>
+                        <label for="editProductPrice" class="block text-gray-700 text-sm font-bold mb-2">Precio:</label>
+                        <input type="number" step="0.01" id="editProductPrice" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-shadow-outline" placeholder="Nuevo precio">
+                    </div>
+                    <button type="submit" class="button-link">Guardar Cambios</button>
+                    <button type="button" id="deleteProductBtn" class="button-link bg-red-500 hover:bg-red-700">Eliminar Producto</button>
+                </form>
+            </div>
+
+            <div id="contentAgregar" class="tab-content hidden-tab">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">Agregar Producto</h2>
+                <div class="mb-4">
+                    <p class="text-gray-600 mb-2">Puedes ingresar el ID del producto manualmente o escanear el código de barras:</p>
+                    <button id="startAddScanner" class="button-link">
+                        Escanear Código de Barras
+                    </button>
+                    <div id="scanner-container-add" class="mt-4 border border-gray-300 rounded overflow-hidden" style="display: none;">
+                        <div id="html5qr-code-full-region-add"></div>
+                        <div id="scanner-message-add" class="p-4 text-center text-gray-500">
+                            Haz clic en "Escanear Código de Barras" para iniciar la cámara.
+                        </div>
+                    </div>
+                    <p id="barcode-result-add" class="mt-2 text-lg font-semibold text-gray-800"></p>
+                </div>
+
+                <hr class="my-6">
+
+                <h3 class="text-xl font-semibold text-gray-700 mb-4">Datos del Producto</h3>
+                <form class="space-y-4" id="addProductForm">
+                    <div>
+                        <label for="addProductId" class="block text-gray-700 text-sm font-bold mb-2">ID/Código de Barras:</label>
+                        <input type="text" id="addProductId" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Ingresa o escanea el código">
+                    </div>
+                    <div>
+                        <label for="addProductName" class="block text-gray-700 text-sm font-bold mb-2">Nombre del Producto:</label>
+                        <input type="text" id="addProductName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Nombre del producto">
+                    </div>
+                    <div>
+                        <label for="addProductQuantity" class="block text-gray-700 text-sm font-bold mb-2">Cantidad:</label>
+                        <input type="number" id="addProductQuantity" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Cantidad a agregar">
+                    </div>
+                    <div>
+                        <label for="addProductPrice" class="block text-gray-700 text-sm font-bold mb-2">Precio:</label>
+                        <input type="number" step="0.01" id="addProductPrice" class="shadow appearance-none border rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-shadow-outline" placeholder="Precio unitario">
+                    </div>
+                    <button type="submit" class="button-link">Agregar Producto</button>
+                </form>
+            </div>
+            
+            <div class="text-center mt-6">
+                <button id="backToMainMenuBtn" class="button-link">
+                    Regresar al Menú Principal
+                </button>
+            </div>
+        </div>
+
+        <div id="pos-section" class="bg-white p-8 rounded-xl shadow-lg w-full" style="display: none;">
+            <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Pago de productos</h1>
+            <p class="text-gray-700 text-lg mb-6">Escanea los códigos de barras de los productos para agregarlos al carrito.</p>
+
+            <div class="mb-4">
+                <button id="startPOSScanner" class="button-link">
+                    Iniciar Escáner de Venta
+                </button>
+                <div id="scanner-container-pos" class="mt-4 border border-gray-300 rounded overflow-hidden" style="display: none;">
+                    <div id="html5qr-code-full-region-pos"></div>
+                    <div id="scanner-message-pos" class="p-4 text-center text-gray-500">
+                        Haz clic en "Iniciar Escáner de Venta" para empezar a escanear productos.
+                    </div>
+                </div>
+                <p id="barcode-result-pos" class="mt-2 text-lg font-semibold text-gray-800"></p>
+                <label for="posProductIdManual" class="block text-gray-700 text-sm font-bold mb-2 mt-4">O ingresa el ID manualmente:</label>
+                <input type="text" id="posProductIdManual" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="ID del producto">
+                <button id="addProductToCartManualBtn" class="button-link mt-2">Agregar al Carrito</button>
+            </div>
+
+            <hr class="my-6">
+
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">Carrito de Compras</h3>
+            <div class="overflow-x-auto mb-4">
+                <table class="min-w-full bg-white border border-gray-200">
+                    <thead>
+                        <tr>
+                            <th class="py-2 px-4 border-b text-left">Producto</th>
+                            <th class="py-2 px-4 border-b text-left">Cantidad</th>
+                            <th class="py-2 px-4 border-b text-left">Precio Unit.</th>
+                            <th class="py-2 px-4 border-b text-left">Subtotal</th>
+                            <th class="py-2 px-4 border-b text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cartTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex justify-end items-center text-2xl font-bold text-gray-800 mb-6">
+                Total: <span id="cartTotal" class="ml-2 text-pink-700">$0.00</span>
+            </div>
+
+            <div class="flex justify-center gap-4">
+                <button id="checkoutBtn" class="button-link bg-green-500 hover:bg-green-700">
+                    Finalizar Compra
+                </button>
+                <button id="clearCartBtn" class="button-link bg-red-500 hover:bg-red-700">
+                    Vaciar Carrito
+                </button>
+            </div>
+
+            <div class="text-center mt-6">
+                <button id="backToMainMenuFromPOSBtn" class="button-link">
+                    Regresar al Menú Principal
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCCrdMfki0Psu0eKzAWIwPlZe-5xr6s3y4",
+            authDomain: "tienda-de-abarrotes-31dd9.firebaseapp.com",
+            projectId: "tienda-de-abarrotes-31dd9",
+            storageBucket: "tienda-de-abarrotes-31dd9.firebasestorage.app",
+            messagingSenderId: "144559769406",
+            appId: "1:144559769406:web:d2888e3543547b4e5a8e6f"
+        };
+      
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const mainMenuSection = document.getElementById('main-menu-section');
+        const inventoryManagementSection = document.getElementById('inventory-management-section');
+        const posSection = document.getElementById('pos-section');
+
+        const menuInventoryBtn = document.getElementById('menuInventoryBtn');
+        const menuPOSBtn = document.getElementById('menuPOSBtn');
+
+        const backToMainMenuBtn = document.getElementById('backToMainMenuBtn');
+        const backToMainMenuFromPOSBtn = document.getElementById('backToMainMenuFromPOSBtn');
+
+        const tabs = document.querySelectorAll('.tab-button');
+        const contents = document.querySelectorAll('.tab-content');
+
+        const startAddScannerBtn = document.getElementById('startAddScanner');
+        const scannerContainerAdd = document.getElementById('scanner-container-add');
+        const scannerMessageAdd = document.getElementById('scanner-message-add');
+        const barcodeResultAdd = document.getElementById('barcode-result-add');
+        const addProductIdField = document.getElementById('addProductId');
+        const addProductForm = document.getElementById('addProductForm');
+        let html5QrCodeAdd = null;
+
+        const startEditScannerBtn = document.getElementById('startEditScanner');
+        const scannerContainerEdit = document.getElementById('scanner-container-edit');
+        const scannerMessageEdit = document.getElementById('scanner-message-edit');
+        const barcodeResultEdit = document.getElementById('barcode-result-edit');
+        const editProductIdManualField = document.getElementById('editProductIdManual');
+        const searchProductByIdBtn = document.getElementById('searchProductByIdBtn');
+        const editProductIdField = document.getElementById('editProductId');
+        const editProductNameField = document.getElementById('editProductName');
+        const editProductQuantityField = document.getElementById('editProductQuantity');
+        const editProductPriceField = document.getElementById('editProductPrice');
+        const editProductForm = document.getElementById('editProductForm');
+        const deleteProductBtn = document.getElementById('deleteProductBtn');
+        let html5QrCodeEdit = null;
+
+        const startPOSScannerBtn = document.getElementById('startPOSScanner');
+        const scannerContainerPOS = document.getElementById('scanner-container-pos');
+        const scannerMessagePOS = document.getElementById('scanner-message-pos');
+        const barcodeResultPOS = document.getElementById('barcode-result-pos');
+        const posProductIdManualField = document.getElementById('posProductIdManual');
+        const addProductToCartManualBtn = document.getElementById('addProductToCartManualBtn');
+        let html5QrCodePOS = null;
+
+        let products = [];
+        let cart = [];
+        let currentPage = 1;
+        const rowsPerPage = 10;
+        let filteredProducts = [];
+
+        function stopAllScanners() {
+            if (html5QrCodeAdd && html5QrCodeAdd.isScanning) {
+                html5QrCodeAdd.stop().then(() => {
+                    console.log("Escáner de agregar detenido.");
+                    document.getElementById('html5qr-code-full-region-add').innerHTML = '';
+                    scannerMessageAdd.style.display = 'block';
+                    scannerMessageAdd.classList.remove('hidden');
+                    scannerMessageAdd.textContent = "Haz clic en 'Escanear Código de Barras' para iniciar la cámara.";
+                    barcodeResultAdd.textContent = '';
+                    scannerContainerAdd.style.display = 'none';
+                }).catch(err => console.error("Error al detener el escáner de agregar:", err));
+                html5QrCodeAdd = null;
+            }
+            if (html5QrCodeEdit && html5QrCodeEdit.isScanning) {
+                html5QrCodeEdit.stop().then(() => {
+                    console.log("Escáner de editar detenido.");
+                    document.getElementById('html5qr-code-full-region-edit').innerHTML = '';
+                    scannerMessageEdit.style.display = 'block';
+                    scannerMessageEdit.classList.remove('hidden');
+                    scannerMessageEdit.textContent = "Haz clic en 'Escanear para Editar' para iniciar la cámara.";
+                    barcodeResultEdit.textContent = '';
+                    scannerContainerEdit.style.display = 'none';
+                }).catch(err => console.error("Error al detener el escáner de editar:", err));
+                html5QrCodeEdit = null;
+            }
+            if (html5QrCodePOS && html5QrCodePOS.isScanning) {
+                html5QrCodePOS.stop().then(() => {
+                    console.log("Escáner de POS detenido.");
+                    document.getElementById('html5qr-code-full-region-pos').innerHTML = '';
+                    scannerMessagePOS.style.display = 'block';
+                    scannerMessagePOS.classList.remove('hidden');
+                    scannerMessagePOS.textContent = "Haz clic en 'Iniciar Escáner de Venta' para empezar a escanear productos.";
+                    barcodeResultPOS.textContent = '';
+                    scannerContainerPOS.style.display = 'none';
+                }).catch(err => console.error("Error al detener el escáner de POS:", err));
+                html5QrCodePOS = null;
+            }
+        }
+
+        function showSection(sectionToShow) {
+            mainMenuSection.style.display = 'none';
+            inventoryManagementSection.style.display = 'none';
+            posSection.style.display = 'none';
+            stopAllScanners();
+
+            sectionToShow.style.display = 'block';
+
+            if (sectionToShow === inventoryManagementSection) {
+                document.getElementById('tabInventario').click(); 
+                contents.forEach(c => c.classList.add('hidden-tab'));
+                document.getElementById('contentInventario').classList.remove('hidden-tab');
+                tabs.forEach(t => t.classList.remove('active'));
+                document.getElementById('tabInventario').classList.add('active');
+                getProductsFromFirestore();
+            } else if (sectionToShow === posSection) {
+                renderCart();
+            }
+        }
+
+        async function getProductsFromFirestore() {
+            try {
+                const productsCollection = await db.collection("productos").get();
+                products = productsCollection.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                filteredProducts = [...products];
+                currentPage = 1;
+                renderInventory();
+                console.log("Productos cargados desde Firebase:", products);
+            } catch (error) {
+                console.error("Error al obtener productos de Firestore:", error);
+                alert("Error al cargar los productos. Inténtalo de nuevo más tarde.");
+            }
+        }
+
+        function renderInventory() {
+            const tableBody = document.getElementById('inventoryTableBody');
+            tableBody.innerHTML = '';
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const paginatedProducts = filteredProducts.slice(start, end);
+
+            if (paginatedProducts.length === 0 && filteredProducts.length > 0 && currentPage > 1) {
+                currentPage--;
+                renderInventory();
+                return;
+            }
+            
+            if (paginatedProducts.length === 0 && filteredProducts.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-gray-500">No se encontraron productos.</td></tr>`;
+                updatePaginationControls();
+                return;
+            }
+
+            paginatedProducts.forEach(product => {
+                const row = tableBody.insertRow();
+                row.insertCell().textContent = product.id;
+                row.insertCell().textContent = product.name;
+                row.insertCell().textContent = product.quantity;
+                row.insertCell().textContent = `$${product.price ? product.price.toFixed(2) : '0.00'}`;
+            });
+
+            updatePaginationControls();
+        }
+
+        function updatePaginationControls() {
+            const pageInfo = document.getElementById('pageInfo');
+            const totalPages = Math.ceil(filteredProducts.length / rowsPerPage);
+            pageInfo.textContent = `Página ${currentPage} de ${totalPages || 1}`;
+
+            document.getElementById('prevPageBtn').disabled = currentPage === 1;
+            document.getElementById('nextPageBtn').disabled = currentPage === totalPages || totalPages === 0;
+        }
+
+        document.getElementById('prevPageBtn').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderInventory();
+            }
+        });
+
+        document.getElementById('nextPageBtn').addEventListener('click', () => {
+            const totalPages = Math.ceil(filteredProducts.length / rowsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderInventory();
+            }
+        });
+
+        document.getElementById('productSearch').addEventListener('input', (event) => {
+            const searchTerm = event.target.value.toLowerCase();
+            filteredProducts = products.filter(product =>
+                product.name.toLowerCase().includes(searchTerm) ||
+                product.id.toLowerCase().includes(searchTerm)
+            );
+            currentPage = 1;
+            renderInventory();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            showSection(mainMenuSection);
+        });
+
+        menuInventoryBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            showSection(inventoryManagementSection);
+        });
+
+        menuPOSBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            showSection(posSection);
+        });
+
+        backToMainMenuBtn.addEventListener('click', () => {
+            showSection(mainMenuSection);
+        });
+
+        backToMainMenuFromPOSBtn.addEventListener('click', () => {
+            showSection(mainMenuSection);
+        });
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                contents.forEach(c => c.classList.add('hidden-tab'));
+                tab.classList.add('active');
+                const targetId = tab.id.replace('tab', 'content');
+                document.getElementById(targetId).classList.remove('hidden-tab');
+                stopAllScanners();
+
+                addProductForm.reset();
+                editProductForm.reset();
+                barcodeResultAdd.textContent = '';
+                barcodeResultEdit.textContent = '';
+                editProductIdManualField.value = '';
+
+                if (targetId === 'contentInventario') {
+                    renderInventory();
+                }
+            });
+        });
+
+        startAddScannerBtn.addEventListener('click', () => {
+            stopAllScanners();
+
+            scannerContainerAdd.style.display = 'block';
+            scannerMessageAdd.classList.add('hidden');
+
+            if (!html5QrCodeAdd) {
+                html5QrCodeAdd = new Html5Qrcode("html5qr-code-full-region-add");
+            }
+
+            Html5Qrcode.getCameras().then(devices => {
+                if (devices && devices.length) {
+                    html5QrCodeAdd.start(
+                        { facingMode: { exact: "environment" } },
+                        { fps: 10, qrbox: { width: 250, height: 150 } },
+                        async (decodedText, decodedResult) => {
+                            console.log(`Código escaneado (Agregar): ${decodedText}`);
+                            barcodeResultAdd.textContent = `Código escaneado: ${decodedText}`;
+                            addProductIdField.value = decodedText;
+
+                            stopAllScanners();
+
+                            const productDoc = await db.collection("productos").doc(decodedText).get();
+                            if (productDoc.exists) {
+                                const existingProduct = productDoc.data();
+                                document.getElementById('addProductName').value = existingProduct.name;
+                                document.getElementById('addProductQuantity').value = existingProduct.quantity;
+                                document.getElementById('addProductPrice').value = existingProduct.price;
+                                alert('Este ID ya existe en el inventario. Puedes modificarlo o añadir más cantidad.');
+                            } else {
+                                document.getElementById('addProductName').value = '';
+                                document.getElementById('addProductQuantity').value = '';
+                                document.getElementById('addProductPrice').value = '';
+                            }
+                        },
+                        (errorMessage) => {
+                        }
+                    ).then(() => {
+                        scannerMessageAdd.classList.add('hidden');
+                        document.getElementById('html5qr-code-full-region-add').style.display = 'block';
+                        barcodeResultAdd.textContent = 'Escaneando para agregar...';
+                    }).catch(err => {
+                        console.error("Error al iniciar el escáner de agregar:", err);
+                        scannerMessageAdd.classList.remove('hidden');
+                        scannerMessageAdd.textContent = "Error al iniciar la cámara. Asegúrate de dar permisos y que la conexión sea HTTPS.";
+                        scannerContainerAdd.style.display = 'none';
+                    });
+                } else {
+                    scannerMessageAdd.classList.remove('hidden');
+                    scannerMessageAdd.textContent = "No se encontraron cámaras disponibles.";
+                    scannerContainerAdd.style.display = 'none';
+                }
+            }).catch(err => {
+                console.error("Error al obtener cámaras (agregar):", err);
+                scannerMessageAdd.classList.remove('hidden');
+                scannerMessageAdd.textContent = "Error al acceder a las cámaras. Asegúrate de dar permisos.";
+                scannerContainerAdd.style.display = 'none';
+            });
+        });
+
+        startEditScannerBtn.addEventListener('click', () => {
+            stopAllScanners();
+
+            scannerContainerEdit.style.display = 'block';
+            scannerMessageEdit.classList.add('hidden');
+
+            if (!html5QrCodeEdit) {
+                html5QrCodeEdit = new Html5Qrcode("html5qr-code-full-region-edit");
+            }
+
+            Html5Qrcode.getCameras().then(devices => {
+                if (devices && devices.length) {
+                    html5QrCodeEdit.start(
+                        { facingMode: { exact: "environment" } },
+                        { fps: 10, qrbox: { width: 250, height: 150 } },
+                        async (decodedText, decodedResult) => {
+                            console.log(`Código escaneado (Editar): ${decodedText}`);
+                            barcodeResultEdit.textContent = `Código escaneado: ${decodedText}`;
+                            editProductIdManualField.value = decodedText;
+                            stopAllScanners();
+                            searchProductById(decodedText);
+                        },
+                        (errorMessage) => {
+                        }
+                    ).then(() => {
+                        scannerMessageEdit.classList.add('hidden');
+                        document.getElementById('html5qr-code-full-region-edit').style.display = 'block';
+                        barcodeResultEdit.textContent = 'Escaneando para editar...';
+                    }).catch(err => {
+                        console.error("Error al iniciar el escáner de editar:", err);
+                        scannerMessageEdit.classList.remove('hidden');
+                        scannerMessageEdit.textContent = "Error al iniciar la cámara. Asegúrate de dar permisos y que la conexión sea HTTPS.";
+                        scannerContainerEdit.style.display = 'none';
+                    });
+                } else {
+                    scannerMessageEdit.classList.remove('hidden');
+                    scannerMessageEdit.textContent = "No se encontraron cámaras disponibles.";
+                    scannerContainerEdit.style.display = 'none';
+                }
+            }).catch(err => {
+                console.error("Error al obtener cámaras (editar):", err);
+                scannerMessageEdit.classList.remove('hidden');
+                scannerMessageEdit.textContent = "Error al acceder a las cámaras. Asegúrate de dar permisos.";
+                scannerContainerEdit.style.display = 'none';
+            });
+        });
+
+        startPOSScannerBtn.addEventListener('click', () => {
+            stopAllScanners();
+
+            scannerContainerPOS.style.display = 'block';
+            scannerMessagePOS.classList.add('hidden');
+
+            if (!html5QrCodePOS) {
+                html5QrCodePOS = new Html5Qrcode("html5qr-code-full-region-pos");
+            }
+
+            Html5Qrcode.getCameras().then(devices => {
+                if (devices && devices.length) {
+                    html5QrCodePOS.start(
+                        { facingMode: { exact: "environment" } },
+                        { fps: 10, qrbox: { width: 250, height: 150 } },
+                        async (decodedText, decodedResult) => {
+                            console.log(`Código escaneado (POS): ${decodedText}`);
+                            barcodeResultPOS.textContent = `Código escaneado: ${decodedText}`;
+                            posProductIdManualField.value = decodedText;
+                            addProductToCart(decodedText);
+                        },
+                        (errorMessage) => {
+                        }
+                    ).then(() => {
+                        scannerMessagePOS.classList.add('hidden');
+                        document.getElementById('html5qr-code-full-region-pos').style.display = 'block';
+                        barcodeResultPOS.textContent = 'Escaneando productos para agregar al carrito...';
+                    }).catch(err => {
+                        console.error("Error al iniciar el escáner de POS:", err);
+                        scannerMessagePOS.classList.remove('hidden');
+                        scannerMessagePOS.textContent = "Error al iniciar la cámara. Asegúrate de dar permisos y que la conexión sea HTTPS.";
+                        scannerContainerPOS.style.display = 'none';
+                    });
+                } else {
+                    scannerMessagePOS.classList.remove('hidden');
+                    scannerMessagePOS.textContent = "No se encontraron cámaras disponibles.";
+                    scannerContainerPOS.style.display = 'none';
+                }
+            }).catch(err => {
+                console.error("Error al obtener cámaras (POS):", err);
+                scannerMessagePOS.classList.remove('hidden');
+                scannerMessagePOS.textContent = "Error al acceder a las cámaras. Asegúrate de dar permisos.";
+                scannerContainerPOS.style.display = 'none';
+            });
+        });
+
+
+        async function searchProductById(productId) {
+            try {
+                const productRef = db.collection("productos").doc(productId);
+                const doc = await productRef.get();
+                if (doc.exists) {
+                    const productData = doc.data();
+                    editProductIdField.value = doc.id;
+                    editProductNameField.value = productData.name;
+                    editProductQuantityField.value = productData.quantity;
+                    editProductPriceField.value = productData.price;
+                } else {
+                    alert("Producto no encontrado.");
+                    editProductForm.reset();
+                    editProductIdField.value = productId;
+                }
+            } catch (error) {
+                console.error("Error al buscar producto:", error);
+                alert("Error al buscar producto.");
+            }
+        }
+
+        searchProductByIdBtn.addEventListener('click', () => {
+            const productId = editProductIdManualField.value.trim();
+            if (productId) {
+                searchProductById(productId);
+            } else {
+                alert("Por favor, ingresa un ID de producto.");
+            }
+        });
+
+        editProductForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const productId = editProductIdField.value.trim();
+            const productName = editProductNameField.value.trim();
+            const productQuantity = parseInt(editProductQuantityField.value);
+            const productPrice = parseFloat(editProductPriceField.value);
+
+            if (!productId || !productName || isNaN(productQuantity) || isNaN(productPrice) || productQuantity < 0 || productPrice < 0) {
+                alert("Por favor, completa todos los campos con valores válidos.");
+                return;
+            }
+
+            try {
+                const productsRef = db.collection("productos");
+                const existingProductByNameQuery = await productsRef.where("name", "==", productName).get();
+                
+                let nameAlreadyExists = false;
+                if (!existingProductByNameQuery.empty) {
+                    existingProductByNameQuery.forEach(doc => {
+                        if (doc.id !== productId) {
+                            nameAlreadyExists = true;
+                        }
+                    });
+                }
+
+                if (nameAlreadyExists) {
+                    alert(`Ya existe un producto con el nombre "${productName}". Por favor, usa un nombre diferente.`);
+                    return;
+                }
+
+                await db.collection("productos").doc(productId).update({
+                    name: productName,
+                    quantity: productQuantity,
+                    price: productPrice
+                });
+                alert("Producto actualizado exitosamente!");
+                editProductForm.reset();
+                getProductsFromFirestore();
+            } catch (error) {
+                console.error("Error al actualizar producto:", error);
+                alert("Error al actualizar producto. Inténtalo de nuevo.");
+            }
+        });
+
+        deleteProductBtn.addEventListener('click', async () => {
+            const productId = editProductIdField.value.trim();
+            if (productId && confirm(`¿Estás seguro de que quieres eliminar el producto con ID ${productId}?`)) {
+                try {
+                    await db.collection("productos").doc(productId).delete();
+                    alert("Producto eliminado exitosamente!");
+                    editProductForm.reset();
+                    getProductsFromFirestore();
+                } catch (error) {
+                    console.error("Error al eliminar producto:", error);
+                    alert("Error al eliminar producto. Inténtalo de nuevo.");
+                }
+            } else if (!productId) {
+                alert("No hay un producto seleccionado para eliminar.");
+            }
+        });
+
+        addProductForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const productId = addProductIdField.value.trim();
+            const productName = document.getElementById('addProductName').value.trim();
+            const productQuantity = parseInt(document.getElementById('addProductQuantity').value);
+            const productPrice = parseFloat(document.getElementById('addProductPrice').value);
+
+            if (!productId || !productName || isNaN(productQuantity) || isNaN(productPrice) || productQuantity < 0 || productPrice < 0) {
+                alert("Por favor, completa todos los campos con valores válidos.");
+                return;
+            }
+
+            try {
+                const docRef = db.collection("productos").doc(productId);
+                const doc = await docRef.get();
+
+                // Check for duplicate ID
+                if (doc.exists) {
+                    alert(`El ID "${productId}" ya existe. Si quieres modificar el producto, ve a la pestaña "Editar Producto".`);
+                    return; 
+                }
+
+                const productsRef = db.collection("productos");
+                const existingProductByNameQuery = await productsRef.where("name", "==", productName).get();
+                
+                let nameAlreadyExistsForAnotherId = false;
+                if (!existingProductByNameQuery.empty) {
+                    existingProductByNameQuery.forEach(existingDoc => {
+                        if (existingDoc.id !== productId) { 
+                            nameAlreadyExistsForAnotherId = true;
+                        }
+                    });
+                }
+
+                if (nameAlreadyExistsForAnotherId) {
+                    alert(`Ya existe un producto con el nombre "${productName}". Por favor, elige un nombre único o edita el producto existente.`);
+                    return;
+                }
+
+                // If both ID and Name are unique for new product, proceed to add
+                await docRef.set({
+                    name: productName,
+                    quantity: productQuantity,
+                    price: productPrice
+                });
+                alert("Producto agregado exitosamente!");
+                addProductForm.reset();
+                barcodeResultAdd.textContent = '';
+                getProductsFromFirestore();
+            } catch (error) {
+                console.error("Error al agregar/actualizar producto:", error);
+                alert("Error al agregar/actualizar producto. Inténtalo de nuevo.");
+            }
+        });
+
+
+        async function addProductToCart(productId) {
+            try {
+                const productRef = db.collection("productos").doc(productId);
+                const doc = await productRef.get();
+                if (doc.exists) {
+                    const productData = doc.data();
+                    if (productData.quantity <= 0) {
+                        alert(`El producto "${productData.name}" está agotado.`);
+                        return;
+                    }
+
+                    const existingItem = cart.find(item => item.id === productId);
+                    if (existingItem) {
+                        if (existingItem.quantityInCart < productData.quantity) {
+                            existingItem.quantityInCart++;
+                            alert(`Cantidad de "${productData.name}" aumentada a ${existingItem.quantityInCart}.`);
+                        } else {
+                            alert(`No hay suficiente stock de "${productData.name}" disponible.`);
+                        }
+                    } else {
+                        cart.push({
+                            id: productId,
+                            name: productData.name,
+                            price: productData.price,
+                            stock: productData.quantity,
+                            quantityInCart: 1
+                        });
+                        alert(`"${productData.name}" añadido al carrito.`);
+                    }
+                    renderCart();
+                } else {
+                    alert("Producto no encontrado en el inventario.");
+                }
+            } catch (error) {
+                console.error("Error al agregar producto al carrito:", error);
+                alert("Error al agregar producto al carrito.");
+            }
+        }
+
+        function removeProductFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            renderCart();
+        }
+
+        function decreaseQuantityInCart(productId) {
+            const item = cart.find(item => item.id === productId);
+            if (item && item.quantityInCart > 1) {
+                item.quantityInCart--;
+            } else {
+                removeProductFromCart(productId);
+            }
+            renderCart();
+        }
+
+        function renderCart() {
+            const cartTableBody = document.getElementById('cartTableBody');
+            const cartTotalSpan = document.getElementById('cartTotal');
+            let total = 0;
+            cartTableBody.innerHTML = '';
+
+            if (cart.length === 0) {
+                cartTableBody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-gray-500">El carrito está vacío.</td></tr>`;
+            } else {
+                cart.forEach(item => {
+                    const subtotal = item.price * item.quantityInCart;
+                    total += subtotal;
+                    const row = cartTableBody.insertRow();
+                    row.insertCell().textContent = item.name;
+                    row.insertCell().textContent = item.quantityInCart;
+                    row.insertCell().textContent = `$${item.price.toFixed(2)}`;
+                    row.insertCell().textContent = `$${subtotal.toFixed(2)}`;
+                    const actionsCell = row.insertCell();
+                    actionsCell.classList.add('text-center');
+
+                    const decreaseBtn = document.createElement('button');
+                    decreaseBtn.textContent = '-';
+                    decreaseBtn.classList.add('px-2', 'py-1', 'bg-red-400', 'text-white', 'rounded-full', 'mr-1', 'hover:bg-red-500');
+                    decreaseBtn.onclick = () => decreaseQuantityInCart(item.id);
+                    actionsCell.appendChild(decreaseBtn);
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.textContent = 'X';
+                    removeBtn.classList.add('px-2', 'py-1', 'bg-gray-400', 'text-white', 'rounded-full', 'hover:bg-gray-500');
+                    removeBtn.onclick = () => removeProductFromCart(item.id);
+                    actionsCell.appendChild(removeBtn);
+                });
+            }
+            cartTotalSpan.textContent = `$${total.toFixed(2)}`;
+        }
+
+        addProductToCartManualBtn.addEventListener('click', () => {
+            const productId = posProductIdManualField.value.trim();
+            if (productId) {
+                addProductToCart(productId);
+                posProductIdManualField.value = '';
+            } else {
+                alert("Por favor, ingresa un ID de producto para agregar al carrito.");
+            }
+        });
+
+        document.getElementById('clearCartBtn').addEventListener('click', () => {
+            if (confirm('¿Estás seguro de que quieres vaciar el carrito?')) {
+                cart = [];
+                renderCart();
+                alert("Carrito vaciado.");
+            }
+        });
+
+        document.getElementById('checkoutBtn').addEventListener('click', async () => {
+            if (cart.length === 0) {
+                alert("El carrito está vacío. No hay productos para finalizar la compra.");
+                return;
+            }
+
+            if (!confirm(`¿Confirmas la compra por un total de ${document.getElementById('cartTotal').textContent}?`)) {
+                return;
+            }
+
+            try {
+                const batch = db.batch();
+                let transactionSuccess = true;
+                let outOfStockItems = [];
+
+                for (const item of cart) {
+                    const productRef = db.collection("productos").doc(item.id);
+                    const doc = await productRef.get();
+
+                    if (!doc.exists || doc.data().quantity < item.quantityInCart) {
+                        outOfStockItems.push(item.name);
+                        transactionSuccess = false;
+                        break;
+                    }
+                    const newQuantity = doc.data().quantity - item.quantityInCart;
+                    batch.update(productRef, { quantity: newQuantity });
+                }
+
+                if (transactionSuccess && outOfStockItems.length === 0) {
+                    await batch.commit();
+                    alert("¡Compra finalizada con éxito! Inventario actualizado.");
+                    cart = [];
+                    renderCart();
+                    getProductsFromFirestore();
+                } else {
+                    alert(`No se pudo completar la compra. Los siguientes productos tienen stock insuficiente: ${outOfStockItems.join(', ')}. Por favor, ajusta tu carrito.`);
+                }
+            } catch (error) {
+                console.error("Error al finalizar la compra:", error);
+                alert("Error al finalizar la compra. Inténtalo de nuevo.");
+            }
+        });
+
+    </script>
+</body>
+</html>

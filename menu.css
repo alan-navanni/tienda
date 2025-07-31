@@ -1,0 +1,190 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: var(--text-color);
+    position: relative;
+    overflow-x: hidden;
+    background-image: url('menus.jpg');    
+    background-position: center; 
+    background-attachment: fixed;
+}
+
+#main-menu-section {
+    border: 3px solid #db2777;
+    position: relative; 
+    top: -120px;         
+}
+
+#inventory-management-section {
+    border: 3px solid #db2777;
+    position: relative; 
+    top: -120px;         
+}
+
+#pos-section {
+    border: 3px solid #db2777;
+    position: relative; 
+    top: -120px;         
+}
+
+button, .button-link {
+    background-color: #ec4899;
+    color: #ffffff;
+    font-weight: 600;
+    padding-top: 0.5rem; 
+    padding-bottom: 0.5rem; 
+    padding-left: 1rem; 
+    padding-right: 1rem; 
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition-property: background-color, border-color, color;
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 0.875rem; 
+}
+
+button:hover, .button-link:hover {
+    background-color: #db2777;
+}
+
+.tab-button {
+   
+    padding-left: 0.75rem; 
+    padding-right: 0.75rem; 
+    padding-top: 0.4rem; 
+    padding-bottom: 0.4rem; 
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: #ec4899;
+    transition-property: background-color;
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.875rem;
+}
+
+.tab-button:hover {
+    background-color: #db2777;
+}
+        
+.tab-button.active {     
+    background-color: #ffffff; 
+    color: #db2777;        
+    border-bottom-width: 2px;          
+    border-color: #db2777;
+}
+
+.tab-content {        
+    padding: 1.5rem;         
+    background-color: #ffffff;       
+    border-bottom-left-radius: 0.5rem;       
+    border-bottom-right-radius: 0.5rem;        
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);        
+    width: 100%;
+}
+        
+.hidden-tab {
+    display: none;
+}
+
+#main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 90%;
+    margin-top: 2.5rem;
+}
+
+@media (min-width: 640px) {
+        #main-content {
+        max-width: 500px;
+            }
+        }
+
+@media (min-width: 768px) {
+        #main-content {
+            max-width: 600px;
+            }
+        }
+
+@media (min-width: 1024px) {
+        #main-content {
+            max-width: 800px;
+            }
+        }
+
+        #inventory-management-section,
+        #pos-section {
+            display: none;
+            margin-top: 2rem;
+            width: 100%;
+        }
+
+        #main-menu-section {
+            margin-top: 2rem;
+        }
+
+        .small-button {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            padding-left: 1.25rem;
+            padding-right: 1.25rem;
+            font-size: 0.875rem;
+        }
+
+         #html5qr-code-full-region-add,
+        #html5qr-code-full-region-edit,
+        #html5qr-code-full-region-pos {
+            min-height: 250px; 
+            min-width: 100%; 
+            display: block; 
+        }
+
+        #scanner-message-add.hidden,
+        #scanner-message-edit.hidden,
+        #scanner-message-pos.hidden {
+            display: none !important;
+        }
+
+       
+        #inventory-table {
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 0.875rem; 
+            margin-top: 1rem; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 0.5rem; 
+            overflow: hidden; 
+        }
+
+        #inventory-table th {
+            background-color: #fce7f3; 
+            color: #db2777; 
+            padding: 0.5rem 0.75rem; 
+            text-align: left; 
+            border-bottom: 1px solid #db2777; 
+            font-weight: 700; 
+        }
+
+        #inventory-table td {
+            padding: 0.4rem 0.75rem; 
+            border-bottom: 1px solid #fce7f3; 
+            vertical-align: middle; 
+        }
+
+        #inventory-table tbody tr:nth-child(odd) {
+            background-color: #fff0f5; 
+        }
+
+        #inventory-table tbody tr:hover {
+            background-color: #ffe4e6; 
+        }
